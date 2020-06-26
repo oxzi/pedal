@@ -7,8 +7,8 @@ import (
 
 func main() {
 	const samplingRate = 50 * time.Millisecond
-	const dashMinDuration = 250 * time.Millisecond
-	const morseMaxDuration = time.Second
+	const morseMaxDotDuration = 250 * time.Millisecond
+	const morseMinIdleDuration = 1000 * time.Millisecond
 
 	signaler, err := NewSignaler("/dev/ttyUSB0", samplingRate)
 	if err != nil {
@@ -16,11 +16,10 @@ func main() {
 	}
 
 	intervals := intervalSampler(signaler.Chan(), samplingRate)
-	morse := morseSampler(intervals, dashMinDuration)
-	morseWord := morseWordSampler(morse, morseMaxDuration)
+	morse := morseSampler(intervals, morseMaxDotDuration, morseMinIdleDuration)
 
 	go func() {
-		for msg := range morseWord {
+		for msg := range morse {
 			switch msg := msg.(type) {
 			case error:
 				panic(msg)
