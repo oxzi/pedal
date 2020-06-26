@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"time"
 )
 
@@ -9,6 +10,16 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+
+	go func() {
+		for signal := range signaler.Chan() {
+			if signal == nil {
+				fmt.Println("ACK")
+			} else {
+				panic(signal)
+			}
+		}
+	}()
 
 	time.Sleep(10 * time.Second)
 

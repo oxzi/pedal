@@ -1,15 +1,17 @@
 package main
 
 import (
-	"log"
 	"time"
 
 	"github.com/tarm/serial"
 )
 
+// Signaler monitors a serial device and returns a press of the pedal via a channel.
 type Signaler struct {
 	serialPort   *serial.Port
 	samplingRate time.Duration
+
+	signalChan chan error
 
 	closeReaderSyn chan struct{}
 	closeReaderAck chan struct{}
@@ -17,9 +19,12 @@ type Signaler struct {
 	closeWriterAck chan struct{}
 }
 
+// NewSignaler creates a new Signaler for a serial device and a sample rate.
 func NewSignaler(serialDevice string, samplingRate time.Duration) (signaler *Signaler, err error) {
 	signaler = &Signaler{
 		samplingRate: samplingRate,
+
+		signalChan: make(chan error),
 
 		closeReaderSyn: make(chan struct{}),
 		closeReaderAck: make(chan struct{}),
@@ -39,6 +44,7 @@ func NewSignaler(serialDevice string, samplingRate time.Duration) (signaler *Sig
 	return
 }
 
+// backgroundReader is a goroutine to read from the serial device.
 func (signaler *Signaler) backgroundReader() {
 	var buf = make([]byte, 128)
 	var lastSend time.Time
@@ -52,15 +58,17 @@ func (signaler *Signaler) backgroundReader() {
 
 		default:
 			if _, err := signaler.serialPort.Read(buf); err != nil {
-				log.Fatalf("Reading errored: %v", err)
+				signaler.signalChan <- err
+				return
 			} else if now := time.Now(); lastSend.Add(signaler.samplingRate).Before(now) {
 				lastSend = now
-				log.Print("ACK")
+				signaler.signalChan <- nil
 			}
 		}
 	}
 }
 
+// backgroundWriter is a goroutine to write to the serial device.
 func (signaler *Signaler) backgroundWriter() {
 	defer close(signaler.closeWriterAck)
 
@@ -71,15 +79,24 @@ func (signaler *Signaler) backgroundWriter() {
 
 		default:
 			if _, err := signaler.serialPort.Write([]byte{0xFF}); err != nil {
-				log.Fatalf("Writing errored: %v", err)
-			}
-			if err := signaler.serialPort.Flush(); err != nil {
-				log.Fatalf("Flusing errored: %v", err)
+				signaler.signalChan <- err
+				return
+			} else if err := signaler.serialPort.Flush(); err != nil {
+				signaler.signalChan <- err
+				return
 			}
 		}
 	}
 }
 
+// Chan is the feedback channel.
+//
+// Each press within the sample rate emits a nil. However, in case of an error, this error is sent.
+func (signaler *Signaler) Chan() chan error {
+	return signaler.signalChan
+}
+
+// Close this Signaler with its underlying serial connection.
 func (signaler *Signaler) Close() (err error) {
 	close(signaler.closeReaderSyn)
 	close(signaler.closeWriterSyn)
@@ -90,6 +107,8 @@ func (signaler *Signaler) Close() (err error) {
 		case <-time.After(time.Second):
 		}
 	}
+
+	close(signaler.signalChan)
 
 	return signaler.serialPort.Close()
 }
