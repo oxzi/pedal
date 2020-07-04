@@ -11,7 +11,7 @@ type Signaler struct {
 	serialPort   *serial.Port
 	samplingRate time.Duration
 
-	signalChan chan error
+	signalChan chan interface{}
 
 	closeReaderSyn chan struct{}
 	closeReaderAck chan struct{}
@@ -24,7 +24,7 @@ func NewSignaler(serialDevice string, samplingRate time.Duration) (signaler *Sig
 	signaler = &Signaler{
 		samplingRate: samplingRate,
 
-		signalChan: make(chan error),
+		signalChan: make(chan interface{}),
 
 		closeReaderSyn: make(chan struct{}),
 		closeReaderAck: make(chan struct{}),
@@ -92,7 +92,7 @@ func (signaler *Signaler) backgroundWriter() {
 // Chan is the feedback channel.
 //
 // Each press within the sample rate emits a nil. However, in case of an error, this error is sent.
-func (signaler *Signaler) Chan() chan error {
+func (signaler *Signaler) Chan() chan interface{} {
 	return signaler.signalChan
 }
 
