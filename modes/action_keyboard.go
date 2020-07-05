@@ -10,7 +10,9 @@ import (
 // KeyboardAction simulates key presses.
 type KeyboardAction struct {
 	keyBonding keybd_event.KeyBonding
-	fun        func(keybd_event.KeyBonding) error
+	startTime  time.Time
+
+	fun func(keybd_event.KeyBonding) error
 }
 
 // NewKeyboardCustomAction allows to configure some specific keyboard action to be performed.
@@ -23,7 +25,7 @@ func NewKeyboardCustomAction(fun func(keybd_event.KeyBonding) error) (kbdAction 
 	}
 
 	if runtime.GOOS == "linux" {
-		time.Sleep(2 * time.Second)
+		kbdAction.startTime = time.Now().Add(2 * time.Second)
 	}
 
 	return
@@ -51,5 +53,9 @@ func NewKeyboardPressAction(keys []int) (kbdAction KeyboardAction, err error) {
 
 // Execute this KeyboardAction.
 func (kbdAction KeyboardAction) Execute() error {
+	for time.Now().Before(kbdAction.startTime) {
+		// active wait for startup delay to pass
+	}
+
 	return kbdAction.fun(kbdAction.keyBonding)
 }
