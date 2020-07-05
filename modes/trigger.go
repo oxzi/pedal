@@ -47,9 +47,6 @@ func (trigger *Trigger) Close() (err error) {
 	if err = trigger.cooldown.Close(); err != nil {
 		return
 	}
-	if err = trigger.action.Close(); err != nil {
-		return
-	}
 
 	return
 }

@@ -1,3 +1,5 @@
+github.com/micmonay/keybd_event v1.1.0 h1:fQzkqiG/Siwji1Ju9NDkIb8FSFFlPU76YbJntrXdtQw=
+github.com/micmonay/keybd_event v1.1.0/go.mod h1:QS2Kfz0PbPezFqMPEot+l/cK78/tHLZtZ7AbYUCRKsQ=
 github.com/tarm/serial v0.0.0-20180830185346-98f6abe2eb07 h1:UyzmZLoiDWMRywV4DUYb9Fbt8uiOSooupjTq10vpvnU=
 github.com/tarm/serial v0.0.0-20180830185346-98f6abe2eb07/go.mod h1:kDXzergiv9cbyO7IOYJZWg1U88JhDg3PB6klq9Hg2pA=
 golang.org/x/sys v0.0.0-20200625212154-ddb9806d33ae h1:Ih9Yo4hSPImZOpfGuA4bR/ORKTAbhZo2AbWNRCnevdo=

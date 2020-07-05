@@ -18,8 +18,13 @@ func main() {
 		panic(err)
 	}
 
-	micMuteAction := modes.NewCommandAction("amixer -c 0 set Capture toggle")
-	trigger := modes.NewTrigger(signaler.Chan(), micMuteAction, 500*time.Millisecond)
+	// micMuteAction := modes.NewCommandAction("amixer -c 0 set Capture toggle")
+	kbdSpaceAction, kbdErr := modes.NewKeyboardPressAction([]int{57})
+	if kbdErr != nil {
+		panic(kbdErr)
+	}
+
+	trigger := modes.NewTrigger(signaler.Chan(), kbdSpaceAction, 500*time.Millisecond)
 
 	go func() {
 		for err := range trigger.Errors() {
