@@ -1,16 +1,15 @@
 package modes
 
 import (
-	"os/exec"
 	"time"
 
 	"github.com/geistesk/pedal/pedal"
 )
 
-// Trigger executes a command after pressing the pedal with a configurable cooldown.
+// Trigger executes an Action after pressing the pedal with a configurable cooldown.
 type Trigger struct {
-	commandStr string
-	cooldown   *pedal.Sampler
+	action   Action
+	cooldown *pedal.Sampler
 
 	errors chan error
 
@@ -18,11 +17,11 @@ type Trigger struct {
 	stopAck chan struct{}
 }
 
-// NewTrigger creates a Trigger from a pedal's signal, some (shell) command and a cooldown.
-func NewTrigger(signalChan chan interface{}, commandStr string, cooldownDuration time.Duration) (trigger *Trigger) {
+// NewTrigger creates a Trigger from a pedal's signal, some Action and a cooldown.
+func NewTrigger(signalChan chan interface{}, action Action, cooldownDuration time.Duration) (trigger *Trigger) {
 	trigger = &Trigger{
-		commandStr: commandStr,
-		cooldown:   pedal.NewCooldownSampler(signalChan, cooldownDuration),
+		action:   action,
+		cooldown: pedal.NewCooldownSampler(signalChan, cooldownDuration),
 
 		errors: make(chan error),
 
@@ -41,11 +40,18 @@ func (trigger *Trigger) Errors() chan error {
 }
 
 // Close this Mode and all its internal workers.
-func (trigger *Trigger) Close() error {
+func (trigger *Trigger) Close() (err error) {
 	close(trigger.stopSyn)
 	<-trigger.stopAck
 
-	return trigger.cooldown.Close()
+	if err = trigger.cooldown.Close(); err != nil {
+		return
+	}
+	if err = trigger.action.Close(); err != nil {
+		return
+	}
+
+	return
 }
 
 // worker is the internal worker routine.
@@ -64,9 +70,8 @@ func (trigger *Trigger) worker() {
 				return
 
 			default:
-				cmd := exec.Command("sh", "-c", trigger.commandStr)
-				if cmdErr := cmd.Start(); cmdErr != nil {
-					trigger.errors <- cmdErr
+				if actionErr := trigger.action.Execute(); actionErr != nil {
+					trigger.errors <- actionErr
 					return
 				}
 			}

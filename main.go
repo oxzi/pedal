@@ -18,7 +18,8 @@ func main() {
 		panic(err)
 	}
 
-	trigger := modes.NewTrigger(signaler.Chan(), "amixer -c 0 set Capture toggle", 500*time.Millisecond)
+	micMuteAction := modes.NewCommandAction("amixer -c 0 set Capture toggle")
+	trigger := modes.NewTrigger(signaler.Chan(), micMuteAction, 500*time.Millisecond)
 
 	go func() {
 		for err := range trigger.Errors() {
