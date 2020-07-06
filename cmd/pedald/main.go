@@ -52,6 +52,11 @@ func signalerCallback(tty string) {
 	modeClose()
 	signalerClose()
 
+	if tty == "none" {
+		log.Info("Cleared Signaler")
+		return
+	}
+
 	if s, err := pedal.NewSignaler(tty, samplingRate); err != nil {
 		log.WithError(err).Error("Updating Signaler errored")
 	} else {
@@ -71,6 +76,11 @@ func modeCallback(payload string) {
 	}
 
 	modeClose()
+
+	if payload == "none" {
+		log.Info("Cleared Mode")
+		return
+	}
 
 	if modeGenerator, ok := modeMessages[payload]; !ok {
 		log.WithField("Mode", payload).Warn("No such mode exists")
