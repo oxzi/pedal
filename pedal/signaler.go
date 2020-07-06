@@ -1,6 +1,7 @@
 package pedal
 
 import (
+	"io"
 	"time"
 
 	"github.com/tarm/serial"
@@ -32,7 +33,7 @@ func NewSignaler(serialDevice string, samplingRate time.Duration) (signaler *Sig
 		closeWriterAck: make(chan struct{}),
 	}
 
-	serialConf := &serial.Config{Name: serialDevice, Baud: 110}
+	serialConf := &serial.Config{Name: serialDevice, Baud: 110, ReadTimeout: 500 * time.Millisecond}
 	if signaler.serialPort, err = serial.OpenPort(serialConf); err != nil {
 		signaler = nil
 		return
@@ -58,8 +59,10 @@ func (signaler *Signaler) backgroundReader() {
 
 		default:
 			if _, err := signaler.serialPort.Read(buf); err != nil {
-				signaler.signalChan <- err
-				return
+				if err != io.EOF {
+					signaler.signalChan <- err
+					return
+				}
 			} else if now := time.Now(); lastSend.Add(signaler.samplingRate).Before(now) {
 				lastSend = now
 				signaler.signalChan <- nil
@@ -101,12 +104,8 @@ func (signaler *Signaler) Close() (err error) {
 	close(signaler.closeReaderSyn)
 	close(signaler.closeWriterSyn)
 
-	for _, closeAck := range []chan struct{}{signaler.closeReaderAck, signaler.closeWriterAck} {
-		select {
-		case <-closeAck:
-		case <-time.After(time.Second):
-		}
-	}
+	<-signaler.closeReaderAck
+	<-signaler.closeWriterAck
 
 	close(signaler.signalChan)
 
