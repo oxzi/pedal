@@ -4,7 +4,6 @@ import (
 	"os"
 	"os/signal"
 	"sync"
-	"time"
 
 	log "github.com/sirupsen/logrus"
 
@@ -12,11 +11,6 @@ import (
 	"github.com/geistesk/pedal/modes"
 	"github.com/geistesk/pedal/pedal"
 )
-
-const serverSocket = "/tmp/pedal.sock"
-
-const samplingRate = 50 * time.Millisecond
-const morseMaxUnit = 250 * time.Millisecond
 
 var (
 	server *ipc.Server
@@ -78,10 +72,14 @@ func modeCallback(payload string) {
 
 	modeClose()
 
-	// TODO: cases
-	micMuteAction := modes.NewCommandAction("amixer -c 0 set Capture toggle")
-	mode = modes.NewTrigger(signaler.Chan(), micMuteAction, 500*time.Millisecond)
-	log.Info("Updated Mode")
+	if modeGenerator, ok := modeMessages[payload]; !ok {
+		log.WithField("Mode", payload).Warn("No such mode exists")
+	} else if tmpMode, err := modeGenerator(signaler.Chan()); err != nil {
+		log.WithError(err).Error("Updating Mode errored")
+	} else {
+		mode = tmpMode
+		log.WithField("Mode", payload).Info("Updated Mode")
+	}
 }
 
 // waitInterrupt waits for a SIGINT.
