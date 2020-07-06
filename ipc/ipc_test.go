@@ -40,7 +40,7 @@ func TestIpcConnect(t *testing.T) {
 
 	socket := randomFile(t)
 
-	server, serverErr := NewServer(socket, &inputFunc, &modeFunc)
+	server, serverErr := NewServer(socket, inputFunc, modeFunc)
 	if serverErr != nil {
 		t.Fatal(serverErr)
 	}

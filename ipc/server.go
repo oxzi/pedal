@@ -4,6 +4,7 @@ import (
 	"encoding/gob"
 	"io"
 	"net"
+	"os"
 	"strings"
 
 	log "github.com/sirupsen/logrus"
@@ -13,19 +14,30 @@ import (
 type Server struct {
 	listener net.Listener
 
-	signalerCallback *func(string)
-	modeCallback     *func(string)
+	signalerCallback func(string)
+	modeCallback     func(string)
 }
 
 // NewServer to be started on the given socketname with the two callback functions.
-func NewServer(socketname string, signalerCallback *func(string), modeCallback *func(string)) (server *Server, err error) {
+func NewServer(socketname string, signalerCallback func(string), modeCallback func(string)) (server *Server, err error) {
+	defer func() {
+		if err != nil {
+			server = nil
+		}
+	}()
+
 	server = &Server{
 		signalerCallback: signalerCallback,
 		modeCallback:     modeCallback,
 	}
 
+	if _, fileInfoErr := os.Stat(socketname); !os.IsNotExist(fileInfoErr) {
+		if err = os.Remove(socketname); err != nil {
+			return
+		}
+	}
+
 	if server.listener, err = net.Listen("unix", socketname); err != nil {
-		server = nil
 		return
 	}
 
@@ -80,11 +92,11 @@ func (server *Server) serveConn(conn net.Conn) {
 		switch message.Kind {
 		case Input:
 			logger.Info("Processing input change")
-			(*server.signalerCallback)(message.Payload)
+			server.signalerCallback(message.Payload)
 
 		case Mode:
 			logger.Info("Processing modechange")
-			(*server.modeCallback)(message.Payload)
+			server.modeCallback(message.Payload)
 
 		default:
 			logger.Warn("Unknown kind in received message.")
