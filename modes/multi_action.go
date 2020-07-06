@@ -23,7 +23,7 @@ type MultiAction struct {
 }
 
 // NewMultiAction based on a map of Morse codes to Actions, the Signaler's sampling rate and durations for Morse code parsing.
-func NewMultiAction(signalChan chan interface{}, actions map[string]Action, samplingRate, maxDotDuration, minIdleDuration time.Duration) (multiAction *MultiAction) {
+func NewMultiAction(signalChan chan interface{}, actions map[string]Action, samplingRate, maxUnit time.Duration) (multiAction *MultiAction) {
 	multiAction = &MultiAction{
 		actions: actions,
 
@@ -34,14 +34,14 @@ func NewMultiAction(signalChan chan interface{}, actions map[string]Action, samp
 	}
 
 	multiAction.interval = pedal.NewIntervalSampler(signalChan, samplingRate)
-	multiAction.morse = pedal.NewMorseSampler(multiAction.interval.Chan(), maxDotDuration, minIdleDuration)
+	multiAction.morse = pedal.NewMorseSampler(multiAction.interval.Chan(), maxUnit)
 
 	go multiAction.worker()
 
 	return
 }
 
-func NewMorseKeyboard(signalChan chan interface{}, samplingRate, maxDotDuration, minIdleDuration time.Duration) (multiAction *MultiAction, err error) {
+func NewMorseKeyboard(signalChan chan interface{}, samplingRate, maxUnit time.Duration) (multiAction *MultiAction, err error) {
 	morseMap := map[string]int{
 		"._":    keybd_event.VK_A,
 		"_...":  keybd_event.VK_B,
@@ -91,7 +91,7 @@ func NewMorseKeyboard(signalChan chan interface{}, samplingRate, maxDotDuration,
 		}
 	}
 
-	multiAction = NewMultiAction(signalChan, actions, samplingRate, maxDotDuration, minIdleDuration)
+	multiAction = NewMultiAction(signalChan, actions, samplingRate, maxUnit)
 	return
 }
 

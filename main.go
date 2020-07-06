@@ -10,8 +10,7 @@ import (
 
 func main() {
 	const samplingRate = 50 * time.Millisecond
-	const morseMaxDotDuration = 300 * time.Millisecond
-	const morseMinIdleDuration = 1000 * time.Millisecond
+	const morseMaxUnit = 250 * time.Millisecond
 
 	signaler, err := pedal.NewSignaler("/dev/ttyUSB0", samplingRate)
 	if err != nil {
@@ -34,7 +33,7 @@ func main() {
 	// multiAction := modes.NewMultiAction(signaler.Chan(), actionMap, samplingRate, morseMaxDotDuration, morseMinIdleDuration)
 	// trigger := modes.NewTrigger(signaler.Chan(), kbdSpaceAction, 500*time.Millisecond)
 
-	morseAction, morseErr := modes.NewMorseKeyboard(signaler.Chan(), samplingRate, morseMaxDotDuration, morseMinIdleDuration)
+	morseAction, morseErr := modes.NewMorseKeyboard(signaler.Chan(), samplingRate, morseMaxUnit)
 	if morseErr != nil {
 		panic(morseErr)
 	}

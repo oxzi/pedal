@@ -6,7 +6,10 @@ import (
 )
 
 // NewMorseSampler samples time.Durations, as received from the IntervalSampler, to morse code words.
-func NewMorseSampler(inputChan chan interface{}, maxDotDuration, minIdleDuration time.Duration) (sampler *Sampler) {
+//
+// The maxUnit describes the maximum time for one unit, which equals a dot. A dash might take up to
+// four units. Longer delays are interpreted as the character's end.
+func NewMorseSampler(inputChan chan interface{}, maxUnit time.Duration) (sampler *Sampler) {
 	sampler = &Sampler{
 		inputChan:  inputChan,
 		outputChan: make(chan interface{}),
@@ -15,7 +18,7 @@ func NewMorseSampler(inputChan chan interface{}, maxDotDuration, minIdleDuration
 		stopAck: make(chan struct{}),
 	}
 
-	go func(sampler *Sampler, maxDotDuration, minIdleDuration time.Duration) {
+	go func(sampler *Sampler, maxUnit time.Duration) {
 		defer close(sampler.stopAck)
 
 		var tmpWord string
@@ -26,8 +29,8 @@ func NewMorseSampler(inputChan chan interface{}, maxDotDuration, minIdleDuration
 			case <-sampler.stopSyn:
 				return
 
-			case <-time.After(minIdleDuration / 4):
-				if tmpWord != "" && lastInput.Add(minIdleDuration).Before(time.Now()) {
+			case <-time.After(maxUnit):
+				if tmpWord != "" && lastInput.Add(4*maxUnit).Before(time.Now()) {
 					sampler.outputChan <- tmpWord
 
 					tmpWord = ""
@@ -37,7 +40,7 @@ func NewMorseSampler(inputChan chan interface{}, maxDotDuration, minIdleDuration
 			case input := <-sampler.inputChan:
 				switch input := input.(type) {
 				case time.Duration:
-					if input <= maxDotDuration {
+					if input <= maxUnit {
 						tmpWord += "."
 					} else {
 						tmpWord += "_"
@@ -54,7 +57,7 @@ func NewMorseSampler(inputChan chan interface{}, maxDotDuration, minIdleDuration
 				}
 			}
 		}
-	}(sampler, maxDotDuration, minIdleDuration)
+	}(sampler, maxUnit)
 
 	return
 }
