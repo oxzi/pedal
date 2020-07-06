@@ -105,6 +105,8 @@ func (multiAction *MultiAction) Close() (err error) {
 	close(multiAction.stopSyn)
 	<-multiAction.stopAck
 
+	close(multiAction.errors)
+
 	if err = multiAction.morse.Close(); err != nil {
 		return
 	}

@@ -89,6 +89,19 @@ func modeCallback(payload string) {
 	} else {
 		mode = tmpMode
 		log.WithField("Mode", payload).Info("Updated Mode")
+
+		go func() {
+			for err := range tmpMode.Errors() {
+				log.WithError(err).Error("Mode errored, closing both Signaler and Mode")
+
+				mutex.Lock()
+				modeClose()
+				signalerClose()
+				mutex.Unlock()
+
+				return
+			}
+		}()
 	}
 }
 

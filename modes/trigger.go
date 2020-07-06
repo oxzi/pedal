@@ -44,6 +44,8 @@ func (trigger *Trigger) Close() (err error) {
 	close(trigger.stopSyn)
 	<-trigger.stopAck
 
+	close(trigger.errors)
+
 	if err = trigger.cooldown.Close(); err != nil {
 		return
 	}
