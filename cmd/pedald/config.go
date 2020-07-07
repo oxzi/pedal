@@ -24,4 +24,12 @@ var modeMessages = map[string](func(chan interface{}) (modes.Mode, error)){
 	"morse-keyboard": func(signalerChan chan interface{}) (modes.Mode, error) {
 		return modes.NewMorseKeyboard(signalerChan, samplingRate, morseMaxUnit)
 	},
+
+	"scroll-down": func(signalerChan chan interface{}) (modes.Mode, error) {
+		if kbdDownAction, err := modes.NewKeyboardPressAction([]int{108}); err != nil {
+			return nil, err
+		} else {
+			return modes.NewTrigger(signalerChan, kbdDownAction, 200*time.Millisecond), nil
+		}
+	},
 }
