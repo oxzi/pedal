@@ -1,0 +1,33 @@
+name: CI
+
+on: [push, pull_request]
+
+jobs:
+  golang:
+    name: Build and check
+
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        go: [ '1.13', '1.15' ]
+
+    steps:
+    - name: Set up Go ${{ matrix.go }}
+      uses: actions/setup-go@v2
+      with:
+        go-version: ${{ matrix.go }}
+
+    - name: Check out code
+      uses: actions/checkout@v2
+
+    - name: Build on Go ${{ matrix.go }}
+      run: go build ./...
+
+    - name: golangci-lint
+      uses: golangci/golangci-lint-action@e868220d9fd3b523f1a8fcfb69749e8c7521ba14  # v2.3.0
+      with:
+        version: v1.32.1
+
+    - name: Test
+      run: go test -race ./...
