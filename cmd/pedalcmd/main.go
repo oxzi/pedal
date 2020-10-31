@@ -9,8 +9,6 @@ import (
 	"github.com/oxzi/pedal/ipc"
 )
 
-const serverSocket = "/tmp/pedal.sock"
-
 func main() {
 	if len(os.Args) < 3 {
 		log.Fatal("Expecting two arguments or more.")
@@ -34,7 +32,7 @@ func main() {
 
 	message.Payload = strings.Join(args, " ")
 
-	if err := ipc.SendMessage(serverSocket, message); err != nil {
+	if err := ipc.SendMessage(ipc.ServerSocketPath(), message); err != nil {
 		log.WithError(err).Fatal("Sending Message failed.")
 	}
 }

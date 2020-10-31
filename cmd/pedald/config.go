@@ -6,8 +6,6 @@ import (
 	"github.com/oxzi/pedal/modes"
 )
 
-const serverSocket = "/tmp/pedal.sock"
-
 // samplingRate to be used for both Samplers and Modes.
 const samplingRate = 50 * time.Millisecond
 

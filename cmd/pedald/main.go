@@ -113,12 +113,12 @@ func waitInterrupt() {
 }
 
 func main() {
-	log.Info("Starting up..")
-
-	if s, err := ipc.NewServer(serverSocket, signalerCallback, modeCallback); err != nil {
+	socket := ipc.ServerSocketPath()
+	if s, err := ipc.NewServer(socket, signalerCallback, modeCallback); err != nil {
 		log.WithError(err).Fatal("Starting server failed")
 	} else {
 		server = s
+		log.WithField("socket", socket).Info("Starting up..")
 	}
 
 	waitInterrupt()
