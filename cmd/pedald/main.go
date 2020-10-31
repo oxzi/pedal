@@ -7,9 +7,9 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
-	"github.com/geistesk/pedal/ipc"
-	"github.com/geistesk/pedal/modes"
-	"github.com/geistesk/pedal/pedal"
+	"github.com/oxzi/pedal/ipc"
+	"github.com/oxzi/pedal/modes"
+	"github.com/oxzi/pedal/pedal"
 )
 
 var (

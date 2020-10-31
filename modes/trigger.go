@@ -3,7 +3,7 @@ package modes
 import (
 	"time"
 
-	"github.com/geistesk/pedal/pedal"
+	"github.com/oxzi/pedal/pedal"
 )
 
 // Trigger executes an Action after pressing the pedal with a configurable cooldown.

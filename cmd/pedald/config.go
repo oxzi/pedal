@@ -3,7 +3,7 @@ package main
 import (
 	"time"
 
-	"github.com/geistesk/pedal/modes"
+	"github.com/oxzi/pedal/modes"
 )
 
 const serverSocket = "/tmp/pedal.sock"
@@ -30,6 +30,14 @@ var modeMessages = map[string](func(chan interface{}) (modes.Mode, error)){
 			return nil, err
 		} else {
 			return modes.NewTrigger(signalerChan, kbdDownAction, 200*time.Millisecond), nil
+		}
+	},
+
+	"arrow-right": func(signalerChan chan interface{}) (modes.Mode, error) {
+		if kbdDownAction, err := modes.NewKeyboardPressAction([]int{106}); err != nil {
+			return nil, err
+		} else {
+			return modes.NewTrigger(signalerChan, kbdDownAction, 500*time.Millisecond), nil
 		}
 	},
 }

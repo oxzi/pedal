@@ -6,7 +6,7 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
-	"github.com/geistesk/pedal/ipc"
+	"github.com/oxzi/pedal/ipc"
 )
 
 const serverSocket = "/tmp/pedal.sock"
